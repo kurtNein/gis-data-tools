@@ -1,6 +1,8 @@
 import arcpy
 from arcpy import da
 
+arcpy.env.workspace = r'C:\Users\kcneinstedt\Downloads\NJ_NG911_2023_12_26.gdb\NJ_NG911_2023_12_26.gdb'
+print(arcpy.ListFeatureClasses())
 class RetrieveExternalKeyFromMatchingAttributes:
     def __init__(self,
                  target_fc: str,
@@ -26,14 +28,13 @@ class RetrieveExternalKeyFromMatchingAttributes:
         # Average time complexity of dict access by key is O(1), iterating through n records is O(n).
         # Iterating through n records in the reference_fc for x records in target_fc is O(n*x).
         self.reference_dictionary = {}
+        print('Variables initialized')
 
         with da.SearchCursor(self.reference_fc, match_fields_reference) as cursor:
             for row in cursor:
                 # Slice the match_fields_reference because the key field was inserted at index 0, so get 1 to the end.
                 self.reference_dictionary[match_fields_reference[1:]] = row[0] # row[0] is the key field we inserted.
             print(self.reference_dictionary)
-
-
 
 
     def get_reference_point(self):
@@ -46,4 +47,11 @@ class RetrieveExternalKeyFromMatchingAttributes:
                 coord = row[1]
             return coord
 
-key_finder = RetrieveExternalKeyFromMatchingAttributes()
+if __name__ == '__main__':
+    key_finder = RetrieveExternalKeyFromMatchingAttributes(
+        r'C:\Users\kcneinstedt\Downloads\NJ_NG911_2023_12_26.gdb\NJ_NG911_2023_12_26.gdb\AddressPoints',
+        r'C:\Users\kcneinstedt\Downloads\NJ_NG911_2023_12_26.gdb\NJ_NG911_2023_12_26.gdb\DATA\RoadCenterlines',
+        ['INC_MUNI'],
+        ['INCMUNI_L'],
+        'RCL_NGUID',
+        'RCL_NGUID')
