@@ -1,3 +1,5 @@
+from datetime import time
+
 import arcpy
 from arcpy import da
 
@@ -47,7 +49,30 @@ class RetrieveExternalKeyFromMatchingAttributes:
                 coord = row[1]
             return coord
 
+class ConstructStreetViewURL:
+    def __init__(self, target_fc: str, field_name="StreetViewURL"):
+        self.target_fc = target_fc
+        self.field_name = field_name
+        self.expression = "getClass(float(!SHAPE.X!), float(!SHAPE.Y!))"
+        self.code_block = """
+        def getClass(coord_x, coord_y):
+            coordinates = [coord_x, coord_y)
+            url = 'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=f"{coord_x},f"{coord_y}'
+            return url
+        """
+
+    def check_field_exists(self):
+        target_fields = arcpy.ListFields(self.target_fc)
+        if self.field_name not in target_fields:
+            arcpy.AddField_management(self.target_fc, self.field_name, 'TEXT', field_is_required='NON_REQUIRED')
+
+    def calculate_url(self):
+        arcpy.CalculateField_management(self.target_fc, self.field_name, self.expression, 'PYTHON3', self.code_block)
+
 if __name__ == '__main__':
+
+    a = ConstructStreetViewURL()
+
     key_finder = RetrieveExternalKeyFromMatchingAttributes(
         r'C:\Users\kcneinstedt\Downloads\NJ_NG911_2023_12_26.gdb\NJ_NG911_2023_12_26.gdb\AddressPoints',
         r'C:\Users\kcneinstedt\Downloads\NJ_NG911_2023_12_26.gdb\NJ_NG911_2023_12_26.gdb\DATA\RoadCenterlines',
